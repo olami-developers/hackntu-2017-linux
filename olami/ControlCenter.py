@@ -126,7 +126,7 @@ class ControlCenter(Thread):
         self.serverProcess = ServerProcess()
         ret = self.ttsPlayer.init()
         if ret:
-            self.ttsPlayer.speak("你好，我是宇宙無敵最強AI智能機器人歐拉蜜", None)
+            self.ttsPlayer.speak("你好，我是歐拉蜜", None)
             ret = self.speechProcess.init(self.handler)
         if ret:
             ret = self.serverProcess.init(self.handler)
