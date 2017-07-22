@@ -8,3 +8,18 @@
 cd olami
 sudo ./startup.sh
 ```
+
+
+*   提供聲音調整command, 底下為將音量調整成到最大
+```
+sudo cp vol /usr/local/bin
+sudo chmod a+x /usr/local/bin/vol
+vol 100
+```
+*   Use the vol script like so:
+```
+vol     # Outputs the current volume as a number between 0 and 100
+vol +   # Turn up the volume by 3
+vol -   # Turn down the volume by 3
+vol 85  # Set the volume to 85
+```
