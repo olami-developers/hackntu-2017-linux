@@ -23,3 +23,9 @@ vol +   # Turn up the volume by 3
 vol -   # Turn down the volume by 3
 vol 85  # Set the volume to 85
 ```
+
+*   提供led控制程式
+```
+cd micphone_led_ctrl
+python main.py
+```
