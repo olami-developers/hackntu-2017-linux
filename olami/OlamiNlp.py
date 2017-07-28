@@ -6,6 +6,7 @@ Created on Jun 30, 2017
 '''
 
 import time
+from datetime import datetime
 import hashlib
 import urllib.request, urllib.error
 import json
@@ -77,6 +78,7 @@ class OlamiNlp(object):
         
         startTime = time.time()
         foundVoice = False
+        print("send data~~~"+str(datetime.now()))
         while True:
             audioData = audioSrc.getRecordData()    
             audioData = self.encodeSpeex(audioData)
@@ -137,6 +139,7 @@ class OlamiNlp(object):
                         
                         if isFinal:
                             ret = resData.get("nli")
+                            print("get result~~~"+str(datetime.now()))
                             print(response + "\n")
                             break                                   
                     

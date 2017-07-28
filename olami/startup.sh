@@ -6,7 +6,7 @@ sleep 5
 sleep 3
 
 echo "start olamiMain\n"
-cd /home/pi/olami/;/usr/bin/python3 /home/pi/olami/olamiMain.py
+cd $PWD;/usr/bin/python3 $PWD/olamiMain.py
 
 sleep 100
 wait

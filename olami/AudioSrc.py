@@ -66,7 +66,7 @@ class AudioSrc(Thread):
 
             if ret == None:
                 waitTime += 1
-                time.sleep(0.03)
+                time.sleep(0.001)
 
         return ret
 
@@ -128,6 +128,8 @@ class AudioSrc(Thread):
                     self.data.append(string_audio_data)
                     
                 self.limitBufLen()
+                #add sleep for avoid high cpu usage
+                time.sleep(0.001)
             
             #    print(len(self.data))         
             
