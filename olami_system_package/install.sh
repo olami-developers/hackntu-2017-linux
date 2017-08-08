@@ -9,6 +9,7 @@ sudo cp -f run_olami /sbin/
 sudo chmod 755 /sbin/run_olami
 sudo touch /var/log/olami.log
 sudo chmod 666 /var/log/olami.log
+sudo systemctl enable olami.service
 echo "done"
 
 
