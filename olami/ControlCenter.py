@@ -4,17 +4,16 @@ Created on Jun 28, 2017
 @author: make ma
 '''
 from threading import Thread
-from MsgHandler import MsgHandler, Message, MsgConst
+from MsgHandler import MsgHandler, MsgConst
 from TtsPlayer import TtsPlayer
-from ServerProcess import ServerProcess
 from SpeechProcess import SpeechProcess
-from SemanticObject import SemanticObject
+from NliObject import NliObject
+from LedControl import LedControl
 
 class ControlCenter(Thread):
     '''
     classdocs
-    '''
-    
+    '''    
     def onServerTtsEndListener(self, param):
         if param != None:
             msg = self.handler.obtainMessage1(MsgConst.MSG_SERVER_TTS_END)
@@ -35,7 +34,6 @@ class ControlCenter(Thread):
         if msg.arg1:
             self.speechProcess.wakeupNow()
 
-
     def onTtsPlay(self, msg):
         self.ttsPlayer.stop()
         self.ttsPlayer.speak(msg.obj, self.onTtsEndListener)
@@ -49,27 +47,25 @@ class ControlCenter(Thread):
     def onMusicEnd(self, msg):
         pass
 
-
     def onAdjustVol(self, msg):
         pass
     
     def onServerSessionBroken(self, msg):
         pass
     
-    
     def onDataFromServer(self, msg):
-        obj = SemanticObject(msg.obj)
-        obj.parse()
+        #obj = SemanticObject(msg.obj)
+        obj = NliObject(msg.obj)
+        obj = obj.parse()
+        obj.process(self.handler)
         if len(obj.getTts()) > 0:
             msg = self.handler.obtainMessage1(MsgConst.MSG_SERVER_TTS_PLAY)
             msg.obj = obj.getTts()
             msg.arg1 = obj.needAnswer()
-            self.handler.sendMessage(msg)  
-        pass
+            self.handler.sendMessage(msg)             
     
     def onUserDataRefresh(self, msg):
         pass
-
 
     def OnProcessServerQuerySuccessed(self, msg):
         pass
@@ -83,13 +79,11 @@ class ControlCenter(Thread):
     def onMusicStop(self, msg):
         pass
 
-
     def onMusicStopAudioBook(self, msg):
         pass
     
     def onForceStopTts(self, msg):
         self.ttsPlayer.stop()
-    
     
     def __init__(self):        
         self.mExit = False
@@ -123,20 +117,20 @@ class ControlCenter(Thread):
         self.handler = MsgHandler()
         self.ttsPlayer = TtsPlayer()
         self.speechProcess = SpeechProcess()
-        self.serverProcess = ServerProcess()
         ret = self.ttsPlayer.init()
         if ret:
             self.ttsPlayer.speak("你好，我是歐拉蜜", None)
             ret = self.speechProcess.init(self.handler)
-        if ret:
-            ret = self.serverProcess.init(self.handler)
-            
+           
         return ret
         
     def run(self):
         while not self.mExit:
             msg = self.handler.msgQueue.getNext()
-            print("process message %d" % (msg.what))
+            print("processing message %d" % (msg.what))
+            if msg.what == MsgConst.MSG_SERVER_TTS_END:
+                ledctrl = LedControl()
+                ledctrl.LightAll("green")
             if msg != None:
                 self.handleMessage(msg)                 
 

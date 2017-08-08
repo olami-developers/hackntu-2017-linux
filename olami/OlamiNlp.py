@@ -10,20 +10,19 @@ from datetime import datetime
 import hashlib
 import urllib.request, urllib.error
 import json
-from speex import *   
+from speex import *  
+from LedControl import LedControl
 
 class OlamiNlp(object):
     '''
     classdocs
     '''
 
-
     def __init__(self):
         '''
         Constructor
         '''
-        
-
+ 
     API_NAME_ASR = "asr";
     
     apiBaseUrl = ''
@@ -43,18 +42,7 @@ class OlamiNlp(object):
     def stopProcess(self):
         self.stop = True
         
-    def psize(self, size):
-        buffer = b''
-        mask = 0
-        while (size > 0):
-            buffer = bytes([(size % 2**7) | mask]) + buffer
-            mask = 0x80
-            size >>= 7
-        return buffer    
-        
     def encodeSpeex(self, audioData):
-        #encoder = speex.Encoder()
-        #encoder.initialize(speex.SPEEX_MODE_WB)
         encoder = WBEncoder()     
         encoder.quality = 10   
         vocoded = b''
@@ -66,8 +54,25 @@ class OlamiNlp(object):
                 end = len(audioData) - len(audioData) % (encoder.frame_size * 2)
                 packet = audioData[i:end]        
             raw = encoder.encode(packet)
-            #vocoded += self.psize(len(raw)) + raw
             vocoded += raw
+            
+        return vocoded
+    
+    def encodeSpeexEx(self, audioDatas):
+        encoder = WBEncoder()     
+        encoder.quality = 10   
+        vocoded = b''
+        packet_size = encoder.frame_size * 2 * 1
+
+        for audioData in audioDatas:
+            for i in range(0, len(audioData), packet_size):
+                packet = audioData[i:i + packet_size]
+                if len(packet) != packet_size:
+                    end = len(audioData) - len(audioData) % (encoder.frame_size * 2)
+                    packet = audioData[i:end]        
+                raw = encoder.encode(packet)
+                vocoded += raw
+            
         return vocoded
         
         
@@ -78,10 +83,16 @@ class OlamiNlp(object):
         
         startTime = time.time()
         foundVoice = False
+        ledctrl = LedControl()
+        ledctrl.LightAll("white")
         print("send data~~~"+str(datetime.now()))
+        speechLen = 0
         while True:
-            audioData = audioSrc.getRecordData()    
-            audioData = self.encodeSpeex(audioData)
+            #audioData = audioSrc.getRecordData()
+            audioDatas = audioSrc.getRecordDataEx(3)  
+            lenAudio = len(audioDatas) * len(audioDatas[0])            
+            speexData = self.encodeSpeexEx(audioDatas)
+            #print(lenAudio)
             #audioData = bytearray(audioData)
             postData = str(self.getBasicQueryString(OlamiNlp.API_NAME_ASR, "seg,nli"))
             postData += "&compress=" + "1"
@@ -96,38 +107,52 @@ class OlamiNlp(object):
                 headers = { 'Connection'    : "Keep-Alive", \
                     'Content-Type'  : "application/octet-stream", \
                     'Cookie': self.cookies }
-            req = urllib.request.Request(url,audioData, headers)
+                
+            #print("url begin", time.time())
+            req = urllib.request.Request(url,speexData, headers)
             f = urllib.request.urlopen(req)
             response = f.read().decode()
+            
+            #print("url return", time.time())
             #print(response + "\n")
             
             if self.cookies == None:
                 self.cookies = f.getheader('Set-Cookie')
-                
-            res =  json.loads(response)
-            resData = res.get("data")
+            
             resAsr = None
             speechStatus = None
+            resData = None
+            
+            res =  json.loads(response)            
             if res != None:
+                resData = res.get("data")
+            
+            if resData != None:
                 resAsr = resData.get("asr")
                 
             if resAsr != None:  
                 speechStatus = resAsr.get("speech_status")
             if speechStatus == 1:
                 foundVoice = True;
+                speechLen += lenAudio
                 
-            if (not foundVoice) and time.time() > startTime + 10:
+            if (not foundVoice) and time.time() > startTime + 8:
                 break;
             
-            if foundVoice and speechStatus == 0:
+            
+            if foundVoice and (speechStatus == 0 or speechLen > 32000 * 8):
                 startTime = time.time()
                 while True:
                     response = self.getRecognitionResult(OlamiNlp.API_NAME_ASR, "nli,seg")
                     #print(response + "\n")
                     res =  json.loads(response)
-                    resData = res.get("data")
                     resAsr = None
                     isFinal = None
+                    resData = None
+                    
+                    if res != None:
+                        resData = res.get("data")
+                    
                     if resData != None:
                         resAsr = resData.get("asr")
                     
@@ -150,40 +175,6 @@ class OlamiNlp(object):
         return ret
 
  
-    def sendAudioFile(self, apiName, seqValue, finished, filePath, compressed): 
-        with open(filePath, "rb") as audioFile:
-            af = audioFile.read()
-            bAudioData = bytearray(af)
-        if (bAudioData is None): 
-            return "[ERROR] File not found!";
-        
-        ''' composite post data field''' 
-        postData = str(self.getBasicQueryString(apiName, seqValue))
-        postData += "&compress=" + ("1" if compressed else "0")
-        postData += "&stop=" + ("1" if finished else "0")
-        
-        ''' Request speech recognition service by HTTP POST '''
-        url = str(self.apiBaseUrl) + "?" + str(postData)
-        headers = { 'Connection'    : "Keep-Alive",
-                    'Content-Type'  : "application/octet-stream" }
-        req = urllib.request.Request(url,bAudioData,headers)
-        with urllib.request.urlopen(req) as f:
-            getResponse = f.read().decode()
-        
-        '''Now you can check the status here.'''
-        #print("Sending 'POST' request to URL : " + self.apiBaseUrl)
-        #print("Post parameters : " + str(postData))
-        #print("Response Code : " + str(f.getcode()))
-        
-        '''Get cookie'''
-        self.cookies = f.getheader('Set-Cookie')
-        if (self.cookies is None): 
-            return "Failed to get cookies.";
-        #print("Cookies : " + str(self.cookies))
-        
-        '''Get the response'''
-        return str(getResponse)
-
     def getRecognitionResult(self, apiName, seqValue):
         query = self.getBasicQueryString(apiName, seqValue) + "&stop=1"
 

@@ -3,9 +3,10 @@ Created on Jun 27, 2017
 
 @author: make ma
 '''
-from ctypes import *
+from ctypes import CDLL,c_char_p
 from threading import Thread
 import os
+from LedControl import LedControl
 
 class PlayThread(Thread):
         def __init__(self, player, speech):
@@ -27,7 +28,8 @@ class TtsPlayer(object):
     '''
 
     def __init__(self):
-        self.ttsLib = CDLL('./libs/libTts.so')
+        self.ttsLib = CDLL('./libs/libTtsPulseAudio.so')
+        #self.ttsLib = CDLL('./libs/libTts.so')
         
     def init(self):
         path = os.path.abspath(__file__)
@@ -51,6 +53,8 @@ class TtsPlayer(object):
 
     
     def speak(self, speech, onPlayEnd = None, onPlayEndParam = None):
+        ledctrl = LedControl()
+        ledctrl.LightAll("blue")
         self.needStop = False
         self.onPlayEnd = onPlayEnd
         self.onPlayEndParam = onPlayEndParam

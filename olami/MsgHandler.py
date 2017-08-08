@@ -47,8 +47,7 @@ class MessageQueue(object):
         
     def insertMessage(self, msg, when): 
         ret = False
-        pos = 0
-        print("insertMessage 111: %d %f" % (msg.what, msg.when))
+        #print("insertMessage 111: %d %f" % (msg.what, msg.when))
         with self.con:
             pos = len(self.mLstMsg)
             i = 0;

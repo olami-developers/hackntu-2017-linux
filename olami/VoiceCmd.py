@@ -4,18 +4,19 @@ Created on Jun 29, 2017
 
 @author: make ma
 '''
-from ctypes import *
+from ctypes import CDLL,c_void_p,c_int,c_char_p,cast
 from AudioSrc import AudioSrc
 import os
+from LedControl import LedControl
 
 class VoiceCmd(object):
     '''
     classdocs
     '''
-    STATE_CANCELED = 1
-    STATE_STOPPED = 2
-    STATE_DETECTED_KEY = 3
-    STATE_DETECTED_SENTENCE = 4
+    STATE_CANCELED = 1              # cancel detection 
+    STATE_STOPPED = 2               # stop detection
+    STATE_DETECTED_KEY = 3          # just keyword is detected
+    STATE_DETECTED_SENTENCE = 4     # keyword is detected and followed by other words
     
     def __init__(self):
         '''
@@ -44,6 +45,8 @@ class VoiceCmd(object):
         self.needStop = True
     
     def startDetect(self):
+        ledctrl = LedControl()
+        ledctrl.LightAll("green")
         ret = VoiceCmd.STATE_STOPPED
         self.asrLib.voiceCmdStartDetect()
         self.needStop = False
@@ -59,8 +62,7 @@ class VoiceCmd(object):
                     print(hyp)
                     if "欧拉密" == hyp:
                         if self.asrLib.voiceCmdIsSpeaking() != 0:
-                            ret = VoiceCmd.STATE_DETECTED_SENTENCE
-                            
+                            ret = VoiceCmd.STATE_DETECTED_SENTENCE                            
                         else:
                             if self.asrLib.voiceCmdGetKeyWordStart() > self.asrLib.voiceCmdGetKeyWordLen() + 16000 * 8 / 10:
                                 ret = VoiceCmd.STATE_DETECTED_SENTENCE
@@ -78,6 +80,5 @@ class VoiceCmd(object):
             ret = VoiceCmd.STATE_STOPPED
         elif self.needCancel:
             ret = VoiceCmd.STATE_CANCELED
-            
         return ret
     

@@ -69,6 +69,44 @@ class AudioSrc(Thread):
                 time.sleep(0.001)
 
         return ret
+    
+    def getRecordDataEx(self, maxBlock):
+        ret = None
+        waitTime = 0
+        
+        #print("getRecordDatalen")
+        while ret == None and waitTime < 100:
+            with self.lock:
+                if len(self.data) > self.curPos:
+                    if maxBlock > len(self.data) - self.curPos:
+                        maxBlock = len(self.data) - self.curPos
+                    ret = self.data[self.curPos:self.curPos + maxBlock]
+                    self.curPos += maxBlock
+                    self.limitBufLen()
+
+            if ret == None:
+                waitTime += 1
+                time.sleep(0.001)
+
+        return ret
+    
+    def getRecordDataAll(self):
+        ret = None
+        waitTime = 0
+        
+        #print("getRecordDatalen")
+        while ret == None and waitTime < 100:
+            with self.lock:
+                if len(self.data) > self.curPos:
+                    ret = self.data[self.curPos:]
+                    self.curPos = len(self.data)
+                    self.limitBufLen()
+
+            if ret == None:
+                waitTime += 1
+                time.sleep(0.001)
+
+        return ret
 
 
     def getCurRecordList(self):
