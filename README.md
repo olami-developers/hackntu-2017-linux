@@ -29,3 +29,12 @@ vol 85  # Set the volume to 85
 cd micphone_led_ctrl
 python main.py
 ```
+
+*   安裝olami為system service，讓olami一開機就啟動
+1.  先確認 olami 在 /home/pi/ 底下
+2.  依照底下步驟安裝系統程式檔案
+```
+cd olami_system_package
+sudo sh install.sh
+```
+3.  重開機後就會聽到olami跟你say hello了！
