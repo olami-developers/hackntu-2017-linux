@@ -3,10 +3,18 @@
 *   提供樹梅派Linux的映像檔：[點我下載](https://drive.google.com/file/d/0BzKhDssP3107TlhXTDJ5LTRwUnc/view?usp=sharing)
 *   提供映像檔燒錄軟體(windows版本[點我下載](https://drive.google.com/file/d/0BzKhDssP3107WVkyQ3JiTkZvSWM/view?usp=sharing))，Linux可以透過dd來完成
 *   請注意！！登入帳號為：`pi`，登入密碼：`raspberrypi`，root無密碼，`sudo su`直接enter即可
+*   請先至 olami/Config.py 將你的 app key 與 app secret 填入
+```
+...
+    NLI_SERVER = "https://tw.olami.ai/cloudservice/api"
+    APP_KEY = "*******your app key*******"
+    APP_SECRET = "*******your app secret*******"
+...
+```
 *   執行範例程式方式為
 ```
 cd olami
-sudo ./startup.sh
+sudo ./startup_standalone.sh
 ```
 
 
@@ -37,4 +45,4 @@ python main.py
 cd olami_system_package
 sudo sh install.sh
 ```
-3.  重開機後就會聽到olami跟你say hello了！
+3.  重開機後就會聽到olami跟你say hello了！ 同樣的別忘了先把你的key給填入喔！
