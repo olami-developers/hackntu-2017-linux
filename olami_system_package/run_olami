@@ -1,2 +1,0 @@
-#!/bin/bash
-bash -c "/home/pi/olami/startup.sh"
